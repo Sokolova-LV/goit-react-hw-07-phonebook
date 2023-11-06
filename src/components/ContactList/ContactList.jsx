@@ -1,33 +1,39 @@
 import PropTypes from 'prop-types';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getContacts, getFilter } from 'redux/selectors';
+import { fetchContacts, deleteContact } from 'redux/operations';
+import { getIsLoading, getError, getFilteredContacts } from 'redux/selectors';
 import { List, Item, ItemName, ItemNumber, Btn } from './ContactList.styled';
-import { deleteContact } from 'redux/slice';
 
 export const ContactList = () => {
-    const contacts = useSelector(getContacts);
-    const filter = useSelector(getFilter);
+    const isLoading = useSelector(getIsLoading);
+    const error = useSelector(getError);
+    const filteredContacts = useSelector(getFilteredContacts);
     const dispatch = useDispatch();
 
-    const filteredContacts = contacts?.filter(contact =>
-        contact?.name?.toLowerCase().includes(filter.toLowerCase())
-    );
+    useEffect(() => {
+        dispatch(fetchContacts());
+    }, [dispatch]);
 
     const onDeleteContact = id => {
         dispatch(deleteContact(id));
     };
 
     return (
-        <List>
-            {filteredContacts.map(({ name, number, id }) => (
+        <div>
+            {isLoading && <p>Contacts is loading...</p>}
+            {error && <p>{error}</p>}
+            <List>
+            {filteredContacts.map(({ id, name, phone }) => (
                 <Item key={id}>
                     <ItemName>
-                        {name}<ItemNumber>{number}</ItemNumber>
+                        {name}<ItemNumber>{phone}</ItemNumber>
                     </ItemName>
                     <Btn onClick={() => onDeleteContact(id)}>Delete</Btn>
                 </Item>
             ))}
-        </List>
+            </List>
+        </div>
     )
 };
 
